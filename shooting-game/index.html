@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>簡易シューティングゲーム</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>簡易シューティングゲーム</h1>
+    <p class="howto">← → で移動、スペースキーで弾発射</p>
+
+    <div class="status-bar">
+      <span>スコア: <strong id="score">0</strong></span>
+      <span>残機: <strong id="lives">3</strong></span>
+      <button id="restart">最初から</button>
+    </div>
+
+    <canvas id="game" width="400" height="600"></canvas>
+
+    <p id="message" class="message"></p>
+
+    <p><a href="../index.html">← 神経衰弱ゲームに戻る</a></p>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
