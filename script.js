@@ -2,7 +2,7 @@ const EMOJIS = ["🍎", "🍌", "🍇", "🍉", "🍓", "🍒", "🍍", "🥝", 
 
 const DIFFICULTIES = {
   easy: { pairs: 8, columns: 4 },
-  normal: { pairs: 12, columns: 4 },
+  normal: { pairs: 12, columns: 6 },
   hard: { pairs: 18, columns: 6 },
 };
 

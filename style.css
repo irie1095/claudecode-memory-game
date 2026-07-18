@@ -8,8 +8,9 @@ body {
   color: #f1f5f9;
   display: flex;
   justify-content: center;
-  padding: 32px 16px;
+  padding: 16px;
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
 }
 
@@ -20,17 +21,18 @@ main {
 }
 
 h1 {
-  font-size: 1.5rem;
-  margin-bottom: 16px;
+  font-size: 1.3rem;
+  margin: 0 0 10px;
 }
 
 .status-bar {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
+  font-size: 0.9rem;
 }
 
 .status-bar button {
@@ -50,17 +52,19 @@ h1 {
 .board {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 6px;
+  width: min(100%, 60vh);
+  margin: 0 auto;
 }
 
 .card {
   aspect-ratio: 1 / 1;
-  border-radius: 10px;
+  border-radius: 8px;
   background: #334155;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-size: clamp(1rem, 6vw, 1.8rem);
   cursor: pointer;
   user-select: none;
   transition: transform 0.15s, background 0.15s;

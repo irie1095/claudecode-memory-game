@@ -25,6 +25,7 @@ let enemySpawnInterval;
 let lastShotTime;
 let isGameOver;
 let animationId;
+let isTouching = false;
 
 function initStars() {
   stars = [];
@@ -105,7 +106,7 @@ function update() {
   if (keys["ArrowRight"]) player.x += PLAYER_SPEED;
   player.x = Math.max(0, Math.min(WIDTH - player.width, player.x));
 
-  if (keys["Space"] && performance.now() - lastShotTime > BULLET_COOLDOWN) {
+  if ((keys["Space"] || isTouching) && performance.now() - lastShotTime > BULLET_COOLDOWN) {
     bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, width: 4, height: 12 });
     lastShotTime = performance.now();
   }
@@ -323,6 +324,44 @@ window.addEventListener("keydown", (e) => {
 window.addEventListener("keyup", (e) => {
   keys[e.code] = false;
 });
+
+function getTouchX(touch) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = WIDTH / rect.width;
+  return (touch.clientX - rect.left) * scaleX;
+}
+
+function movePlayerTo(touch) {
+  player.x = getTouchX(touch) - player.width / 2;
+}
+
+canvas.addEventListener(
+  "touchstart",
+  (e) => {
+    e.preventDefault();
+    isTouching = true;
+    movePlayerTo(e.touches[0]);
+  },
+  { passive: false }
+);
+
+canvas.addEventListener(
+  "touchmove",
+  (e) => {
+    e.preventDefault();
+    movePlayerTo(e.touches[0]);
+  },
+  { passive: false }
+);
+
+canvas.addEventListener(
+  "touchend",
+  (e) => {
+    e.preventDefault();
+    isTouching = false;
+  },
+  { passive: false }
+);
 
 restartBtn.addEventListener("click", resetGame);
 
