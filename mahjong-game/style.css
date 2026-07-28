@@ -112,7 +112,7 @@ h1 {
   width: 100%;
   overflow: hidden;
   display: grid;
-  grid-template-columns: 92px 1fr 92px;
+  grid-template-columns: 128px 1fr 128px;
   grid-template-rows: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
   grid-template-areas:
     "top top top"
@@ -172,6 +172,34 @@ h1 {
   color: #cbd5e1;
 }
 
+.melds-row-mini {
+  flex-shrink: 0;
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-height: 56px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.melds-row-mini::-webkit-scrollbar {
+  display: none;
+}
+
+/* 副露の牌も本物の卓の向きに合わせる：対面=180度／上家=90度／下家=270度 */
+.seat-top .meld-group .tile {
+  transform: rotate(180deg);
+}
+
+.seat-left .meld-group .tile {
+  transform: rotate(90deg);
+}
+
+.seat-right .meld-group .tile {
+  transform: rotate(270deg);
+}
+
 .back-tile {
   display: inline-block;
   width: 10px;
@@ -194,19 +222,35 @@ h1 {
   scrollbar-width: none;
 }
 
-/* 上家は上から下へ、下家は下から上へ捨てていき、列が埋まったら右へ新しい列を作る */
+/* 上家・下家：5行で1列。収まらなければ牌のサイズを保ったまま横に列を増やす */
 .seat-left .discard-grid,
 .seat-right .discard-grid {
-  overflow-x: auto;
-  overflow-y: hidden;
+  width: 100%;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(5, 22px);
+  grid-auto-columns: 29px;
+  gap: 2px;
+  align-content: start;
+  overflow: visible;
 }
 
-.seat-left .discard-grid {
-  flex-direction: column;
-}
-
+/* 下家は下から上へ積む（グリッド全体を上下反転させ、牌ごとに反転を打ち消す） */
 .seat-right .discard-grid {
-  flex-direction: column-reverse;
+  transform: scaleY(-1);
+}
+
+.seat-right .discard-grid > * {
+  transform: scaleY(-1);
+}
+
+/* 上家は1列目が中央側（右）に来るよう、列が伸びる向きを左右反転する */
+.seat-left .discard-grid {
+  transform: scaleX(-1);
+}
+
+.seat-left .discard-grid > * {
+  transform: scaleX(-1);
 }
 
 .discard-grid::-webkit-scrollbar {
@@ -225,20 +269,19 @@ h1 {
 /* 本物の麻雀卓の向き：対面=180度／上家=90度／下家=270度 */
 .d-tile-wrap-90,
 .d-tile-wrap-270 {
-  flex: 0 0 auto;
-  width: 42px;
-  height: 32px;
+  width: 29px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .d-tile-wrap-90 .d-tile {
-  transform: rotate(90deg);
+  transform: rotate(90deg) scale(0.69);
 }
 
 .d-tile-wrap-270 .d-tile {
-  transform: rotate(270deg);
+  transform: rotate(270deg) scale(0.69);
 }
 
 .d-tile-wrap-180 {
@@ -354,9 +397,9 @@ h1 {
 
 .meld-group .tile {
   flex: none;
-  width: 20px;
-  height: 27px;
-  font-size: 0.6rem;
+  width: 18px;
+  height: 24px;
+  font-size: 0.55rem;
   cursor: default;
 }
 

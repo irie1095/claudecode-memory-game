@@ -58,13 +58,6 @@ MJ.UI = (function () {
     return tiles.map((t) => `<div class="d-tile-wrap-${mode.slice(1)}">${t}</div>`).join("");
   }
 
-  const MELD_LABEL = { pon: "ポン", chi: "チー", minkan: "カン", kakan: "カン", ankan: "暗カン" };
-
-  function meldSummaryText(melds) {
-    if (melds.length === 0) return "";
-    return " " + melds.map((m) => `[${MELD_LABEL[m.kind]}${T.label(m.tiles[0])}]`).join("");
-  }
-
   function meldGroupHtml(melds) {
     return melds
       .map((m) => {
@@ -87,9 +80,13 @@ MJ.UI = (function () {
     el("discard-right").innerHTML = discardHtml(state.players[1].discards, "r270");
     el("discard-self").innerHTML = discardHtml(state.players[0].discards, "up");
 
-    el("hand-count-right").innerHTML = `<span class="back-tile"></span><span class="back-count">${state.players[1].hand.length}</span>${meldSummaryText(state.players[1].melds)}`;
-    el("hand-count-top").innerHTML = `<span class="back-tile"></span><span class="back-count">${state.players[2].hand.length}</span>${meldSummaryText(state.players[2].melds)}`;
-    el("hand-count-left").innerHTML = `<span class="back-tile"></span><span class="back-count">${state.players[3].hand.length}</span>${meldSummaryText(state.players[3].melds)}`;
+    el("hand-count-right").innerHTML = `<span class="back-tile"></span><span class="back-count">${state.players[1].hand.length}</span>`;
+    el("hand-count-top").innerHTML = `<span class="back-tile"></span><span class="back-count">${state.players[2].hand.length}</span>`;
+    el("hand-count-left").innerHTML = `<span class="back-tile"></span><span class="back-count">${state.players[3].hand.length}</span>`;
+
+    el("melds-top").innerHTML = meldGroupHtml(state.players[2].melds);
+    el("melds-left").innerHTML = meldGroupHtml(state.players[3].melds);
+    el("melds-right").innerHTML = meldGroupHtml(state.players[1].melds);
 
     el("dora-tiles").innerHTML = state.doraIndicators
       .map((t) => `<div class="tile tile-mini ${T.tileFaceClass(t)}">${T.tileVisualHtml(t)}</div>`)

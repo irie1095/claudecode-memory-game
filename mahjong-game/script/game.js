@@ -153,6 +153,7 @@ MJ.Game = (function () {
       }
     }
     state.turnSeat = state.dealerSeat;
+    state.phase = "IDLE";
     state.result = null;
     state.message = "";
     notify();
