@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>麻雀ゲーム</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <div class="header">
+      <a class="back-link" href="../index.html">← 戻る</a>
+      <h1>麻雀ゲーム</h1>
+    </div>
+
+    <div class="status-bar" id="status-bar"></div>
+
+    <div class="scores-bar" id="scores-bar"></div>
+
+    <div class="table">
+      <div class="seat seat-top">
+        <p class="seat-label">対面</p>
+        <div class="tile-backs" id="hand-count-top"></div>
+        <div class="discard-grid" id="discard-top"></div>
+      </div>
+      <div class="seat seat-left">
+        <p class="seat-label">上家</p>
+        <div class="tile-backs" id="hand-count-left"></div>
+        <div class="discard-grid" id="discard-left"></div>
+      </div>
+      <div class="seat seat-center">
+        <p class="seat-label">ドラ表示</p>
+        <div class="dora-tiles" id="dora-tiles"></div>
+      </div>
+      <div class="seat seat-right">
+        <p class="seat-label">下家</p>
+        <div class="tile-backs" id="hand-count-right"></div>
+        <div class="discard-grid" id="discard-right"></div>
+      </div>
+      <div class="result-overlay" id="result-overlay"></div>
+    </div>
+
+    <p id="message" class="message"></p>
+
+    <div class="hand-row" id="hand-row"></div>
+
+    <div class="action-buttons" id="action-buttons">
+      <button class="act-btn" id="btn-discard" hidden>捨てる</button>
+      <button class="act-btn" id="btn-riichi" hidden>リーチ</button>
+      <button class="act-btn" id="btn-tsumo" hidden>ツモ</button>
+      <button class="act-btn" id="btn-ron" hidden>ロン</button>
+      <button class="act-btn" id="btn-pon" hidden>ポン</button>
+      <button class="act-btn" id="btn-chi" hidden>チー</button>
+      <button class="act-btn" id="btn-kan" hidden>カン</button>
+      <button class="act-btn act-skip" id="btn-skip" hidden>スキップ</button>
+    </div>
+  </main>
+
+  <script src="script/tiles.js"></script>
+  <script src="script/hand-utils.js"></script>
+  <script src="script/shanten.js"></script>
+  <script src="script/yaku.js"></script>
+  <script src="script/scoring.js"></script>
+  <script src="script/ai.js"></script>
+  <script src="script/game.js"></script>
+  <script src="script/ui.js"></script>
+  <script src="script/main.js"></script>
+</body>
+</html>
