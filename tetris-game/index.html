@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>テトリス風ゲーム</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>テトリス風ゲーム</h1>
+    <p class="howto">PC: ← → で移動、↑で回転、↓でソフトドロップ、スペースでハードドロップ<br>スマホ: 下のボタンで操作</p>
+
+    <div class="status-bar">
+      <span>スコア: <strong id="score">0</strong></span>
+      <span>ライン: <strong id="lines">0</strong></span>
+      <span>レベル: <strong id="level">1</strong></span>
+      <button id="restart">最初から</button>
+    </div>
+
+    <div class="game-area">
+      <canvas id="board" width="240" height="480"></canvas>
+      <div class="side-panel">
+        <p class="side-label">NEXT</p>
+        <canvas id="next" width="96" height="96"></canvas>
+      </div>
+    </div>
+
+    <p id="message" class="message"></p>
+
+    <div class="touch-controls">
+      <button id="btn-rotate" class="ctrl-btn ctrl-rotate">⟲</button>
+      <div class="ctrl-row">
+        <button id="btn-left" class="ctrl-btn">◀</button>
+        <button id="btn-down" class="ctrl-btn">▼</button>
+        <button id="btn-right" class="ctrl-btn">▶</button>
+      </div>
+      <button id="btn-drop" class="ctrl-btn ctrl-drop">⤓ ハードドロップ</button>
+    </div>
+
+    <p><a href="../index.html">← 神経衰弱ゲームに戻る</a></p>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
