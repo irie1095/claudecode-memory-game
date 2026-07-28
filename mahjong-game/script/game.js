@@ -33,6 +33,9 @@ MJ.Game = (function () {
       wall: [],
       wallCursor: 0,
       liveWallEnd: 0,
+      deadWallCursor: 0,
+      kanCount: 0,
+      kanSeats: [],
       doraIndicators: [],
       turnSeat: 0,
       phase: "IDLE",
@@ -40,8 +43,13 @@ MJ.Game = (function () {
       message: "",
       humanActions: { canTsumo: false, canRon: false },
       humanTsumoResult: null,
+      humanKanOptions: [],
+      lastDrawnTile: null,
       pendingRon: null,
       pendingOtherRonners: [],
+      pendingCallOptions: [],
+      pendingCallTile: null,
+      pendingCallFrom: null,
       dealerRepeats: false,
       result: null,
     };
@@ -103,6 +111,9 @@ MJ.Game = (function () {
     state.wall = T.buildWall();
     state.liveWallEnd = state.wall.length - 14;
     state.wallCursor = 0;
+    state.deadWallCursor = 0;
+    state.kanCount = 0;
+    state.kanSeats = [];
     state.doraIndicators = [state.wall[state.liveWallEnd]];
     refreshWinds();
     for (const p of state.players) {
@@ -128,9 +139,87 @@ MJ.Game = (function () {
     else setTimeout(() => draw(seat), 500);
   }
 
+  function computeKanOptions(p) {
+    const opts = [];
+    const counts = MJ.HandUtils.toCounts(p.hand);
+    for (let t = 0; t < 34; t++) {
+      if (counts[t] >= 4) opts.push({ kind: "ankan", tile: t });
+    }
+    for (const m of p.melds) {
+      if (m.kind === "pon" && p.hand.includes(m.tiles[0])) opts.push({ kind: "kakan", tile: m.tiles[0] });
+    }
+    return opts;
+  }
+
+  function declareSelfKan(seat, opt) {
+    const p = player(seat);
+    if (opt.kind === "ankan") {
+      for (let i = 0; i < 4; i++) MJ.HandUtils.removeTile(p.hand, opt.tile);
+      p.melds.push({ kind: "ankan", tiles: [opt.tile, opt.tile, opt.tile, opt.tile], from: null });
+    } else {
+      const idx = p.melds.findIndex((m) => m.kind === "pon" && m.tiles[0] === opt.tile);
+      MJ.HandUtils.removeTile(p.hand, opt.tile);
+      p.melds[idx] = { kind: "kakan", tiles: [opt.tile, opt.tile, opt.tile, opt.tile], from: p.melds[idx].from };
+    }
+    registerKan(seat);
+    drawRinshan(seat);
+  }
+
+  function registerKan(seat) {
+    state.kanCount++;
+    state.kanSeats.push(seat);
+  }
+
+  function isSuukaikan() {
+    if (state.kanCount < 4) return false;
+    return new Set(state.kanSeats).size > 1;
+  }
+
+  function drawRinshan(seat) {
+    const k = state.deadWallCursor;
+    const rinshanTile = state.wall[state.wall.length - 1 - k];
+    state.deadWallCursor++;
+    state.liveWallEnd--;
+
+    const p = player(seat);
+    p.hand.push(rinshanTile);
+    state.doraIndicators.push(state.wall[state.wall.length - 14 + state.deadWallCursor]);
+
+    if (isSuukaikan()) {
+      ryuukyoku(true);
+      return;
+    }
+
+    const ctx = buildContext(seat, rinshanTile, true, { isRinshan: true });
+    const result = MJ.Yaku.evaluateWin(p.hand.slice(), p.melds, ctx);
+
+    if (seat === 0) {
+      state.phase = "HUMAN_DISCARD_WAIT";
+      state.humanActions = { canTsumo: result.valid, canRon: false };
+      state.humanTsumoResult = result.valid ? result : null;
+      state.humanKanOptions = computeKanOptions(p);
+      state.lastDrawnTile = rinshanTile;
+      state.message = `嶺上牌: ${T.label(rinshanTile)}`;
+      notify();
+      return;
+    }
+
+    if (result.valid && MJ.AI.wantsToWin()) {
+      resolveWin(seat, rinshanTile, true, result);
+      return;
+    }
+    const kanOptions = state.deadWallCursor < 4 ? computeKanOptions(p) : [];
+    if (kanOptions.length > 0 && MJ.AI.wantsToCall(p, { type: "selfkan" }, state)) {
+      declareSelfKan(seat, kanOptions[0]);
+      return;
+    }
+    const discardTile = MJ.AI.chooseDiscard(p, state);
+    setTimeout(() => doDiscard(seat, discardTile), 400);
+  }
+
   function draw(seat) {
     if (state.wallCursor >= state.liveWallEnd) {
-      ryuukyoku();
+      ryuukyoku(false);
       return;
     }
     const tile = state.wall[state.wallCursor++];
@@ -145,6 +234,8 @@ MJ.Game = (function () {
       state.phase = "HUMAN_DISCARD_WAIT";
       state.humanActions = { canTsumo: result.valid, canRon: false };
       state.humanTsumoResult = result.valid ? result : null;
+      state.humanKanOptions = state.deadWallCursor < 4 ? computeKanOptions(p) : [];
+      state.lastDrawnTile = tile;
       state.message = "あなたの番です（牌をタップして選択→「捨てる」で確定）";
       notify();
       return;
@@ -154,7 +245,98 @@ MJ.Game = (function () {
       resolveWin(seat, tile, true, result);
       return;
     }
+    const kanOptions = state.deadWallCursor < 4 ? computeKanOptions(p) : [];
+    if (kanOptions.length > 0 && MJ.AI.wantsToCall(p, { type: "selfkan" }, state)) {
+      declareSelfKan(seat, kanOptions[0]);
+      return;
+    }
     const discardTile = MJ.AI.chooseDiscard(p, state);
+    setTimeout(() => doDiscard(seat, discardTile), 400);
+  }
+
+  function computeChiSets(hand, tile) {
+    if (!T.isSuited(tile)) return [];
+    const rank = T.rankOf(tile);
+    const has = (t) => hand.includes(t);
+    const sets = [];
+    if (rank >= 3 && has(tile - 2) && has(tile - 1)) sets.push([tile - 2, tile - 1]);
+    if (rank >= 2 && rank <= 8 && has(tile - 1) && has(tile + 1)) sets.push([tile - 1, tile + 1]);
+    if (rank <= 7 && has(tile + 1) && has(tile + 2)) sets.push([tile + 1, tile + 2]);
+    return sets;
+  }
+
+  function resolveCallWindow(discarderSeat, tile) {
+    const kanAvailable = state.deadWallCursor < 4; // カン用の嶺上牌が尽きていればカンだけ不可
+
+    const ponKan = [];
+    for (let i = 1; i <= 3; i++) {
+      const s = (discarderSeat + i) % 4;
+      const cnt = player(s).hand.filter((t) => t === tile).length;
+      if (kanAvailable && cnt >= 3) ponKan.push({ seat: s, type: "kan", tile });
+      if (cnt >= 2) ponKan.push({ seat: s, type: "pon", tile });
+    }
+    const chiSeat = (discarderSeat + 1) % 4;
+    const chiSets = computeChiSets(player(chiSeat).hand, tile);
+    const chiOpts = chiSets.map((set) => ({ seat: chiSeat, type: "chi", tile, set }));
+
+    const allOptions = ponKan.concat(chiOpts);
+    if (allOptions.length === 0) return null;
+
+    const humanOpts = allOptions.filter((o) => o.seat === 0);
+    if (humanOpts.length > 0) return { kind: "human", options: humanOpts };
+
+    for (const opt of ponKan) {
+      if (MJ.AI.wantsToCall(player(opt.seat), opt, state)) return { kind: "cpu", choice: opt };
+    }
+    for (const opt of chiOpts) {
+      if (MJ.AI.wantsToCall(player(opt.seat), opt, state)) return { kind: "cpu", choice: opt };
+    }
+    return null;
+  }
+
+  function performCall(choice, discarderSeat) {
+    const caller = player(choice.seat);
+    const discards = player(discarderSeat).discards;
+    discards[discards.length - 1].calledBy = choice.seat;
+
+    if (choice.type === "pon") {
+      MJ.HandUtils.removeTile(caller.hand, choice.tile);
+      MJ.HandUtils.removeTile(caller.hand, choice.tile);
+      caller.melds.push({ kind: "pon", tiles: [choice.tile, choice.tile, choice.tile], from: discarderSeat });
+      state.turnSeat = choice.seat;
+      afterCallDiscardPhase(choice.seat, `${seatLabel(choice.seat)}がポン`);
+    } else if (choice.type === "kan") {
+      MJ.HandUtils.removeTile(caller.hand, choice.tile);
+      MJ.HandUtils.removeTile(caller.hand, choice.tile);
+      MJ.HandUtils.removeTile(caller.hand, choice.tile);
+      caller.melds.push({ kind: "minkan", tiles: [choice.tile, choice.tile, choice.tile, choice.tile], from: discarderSeat });
+      state.turnSeat = choice.seat;
+      registerKan(choice.seat);
+      drawRinshan(choice.seat);
+    } else if (choice.type === "chi") {
+      MJ.HandUtils.removeTile(caller.hand, choice.set[0]);
+      MJ.HandUtils.removeTile(caller.hand, choice.set[1]);
+      const tiles = [choice.set[0], choice.set[1], choice.tile].sort((a, b) => a - b);
+      caller.melds.push({ kind: "chi", tiles, from: discarderSeat });
+      state.turnSeat = choice.seat;
+      afterCallDiscardPhase(choice.seat, `${seatLabel(choice.seat)}がチー`);
+    }
+  }
+
+  function afterCallDiscardPhase(seat, message) {
+    if (seat === 0) {
+      state.phase = "HUMAN_DISCARD_WAIT";
+      state.humanActions = { canTsumo: false, canRon: false };
+      state.humanTsumoResult = null;
+      state.humanKanOptions = state.deadWallCursor < 4 ? computeKanOptions(player(0)) : [];
+      state.lastDrawnTile = null;
+      state.message = message + "。捨てる牌を選んでください";
+      notify();
+      return;
+    }
+    state.message = message;
+    notify();
+    const discardTile = MJ.AI.chooseDiscard(player(seat), state);
     setTimeout(() => doDiscard(seat, discardTile), 400);
   }
 
@@ -191,6 +373,22 @@ MJ.Game = (function () {
       return;
     }
 
+    const callResult = resolveCallWindow(seat, tile);
+    if (callResult) {
+      if (callResult.kind === "human") {
+        state.phase = "HUMAN_CALL_WAIT";
+        state.pendingCallOptions = callResult.options;
+        state.pendingCallTile = tile;
+        state.pendingCallFrom = seat;
+        state.message = "鳴けます";
+        notify();
+        return;
+      }
+      notify();
+      performCall(callResult.choice, seat);
+      return;
+    }
+
     setNeutralPhase();
     notify();
     const nextSeat = (seat + 1) % 4;
@@ -203,8 +401,13 @@ MJ.Game = (function () {
     state.phase = "RESOLVING";
     state.humanActions = { canTsumo: false, canRon: false };
     state.humanTsumoResult = null;
+    state.humanKanOptions = [];
+    state.lastDrawnTile = null;
     state.pendingRon = null;
     state.pendingOtherRonners = [];
+    state.pendingCallOptions = [];
+    state.pendingCallTile = null;
+    state.pendingCallFrom = null;
   }
 
   function resolveWin(seat, winTile, isTsumo, result, discarderSeat) {
@@ -247,7 +450,15 @@ MJ.Game = (function () {
     notify();
   }
 
-  function ryuukyoku() {
+  function ryuukyoku(isAbortive) {
+    if (isAbortive) {
+      state.phase = "ROUND_OVER";
+      state.result = { type: "ryuukyoku", tenpaiSeats: [], abortive: true };
+      state.dealerRepeats = true;
+      state.message = "四開槓（途中流局）";
+      notify();
+      return;
+    }
     const tenpaiSeats = [];
     for (let s = 0; s < 4; s++) {
       const p = player(s);
@@ -259,7 +470,7 @@ MJ.Game = (function () {
       player(s).score += tenpaiSeats.includes(s) ? pay.tenpai : pay.noten;
     }
     state.phase = "ROUND_OVER";
-    state.result = { type: "ryuukyoku", tenpaiSeats };
+    state.result = { type: "ryuukyoku", tenpaiSeats, abortive: false };
     state.dealerRepeats = tenpaiSeats.includes(state.dealerSeat);
     state.message = "流局";
     notify();
@@ -301,6 +512,20 @@ MJ.Game = (function () {
     resolveWin(0, tile, true, state.humanTsumoResult);
   }
 
+  function humanAnkan(tile) {
+    if (state.phase !== "HUMAN_DISCARD_WAIT") return;
+    const opt = state.humanKanOptions.find((o) => o.kind === "ankan" && o.tile === tile);
+    if (!opt) return;
+    declareSelfKan(0, opt);
+  }
+
+  function humanKakan(tile) {
+    if (state.phase !== "HUMAN_DISCARD_WAIT") return;
+    const opt = state.humanKanOptions.find((o) => o.kind === "kakan" && o.tile === tile);
+    if (!opt) return;
+    declareSelfKan(0, opt);
+  }
+
   function humanRon() {
     if (state.phase !== "HUMAN_RON_WAIT" || !state.pendingRon) return;
     const { seat, result } = state.pendingRon;
@@ -323,6 +548,25 @@ MJ.Game = (function () {
     scheduleDraw(nextSeat);
   }
 
+  function humanCall(type) {
+    if (state.phase !== "HUMAN_CALL_WAIT") return;
+    const opt = state.pendingCallOptions.find((o) => o.type === type);
+    if (!opt) return;
+    const discarderSeat = state.pendingCallFrom;
+    setNeutralPhase();
+    performCall(opt, discarderSeat);
+  }
+
+  function humanSkipCall() {
+    if (state.phase !== "HUMAN_CALL_WAIT") return;
+    const discarderSeat = state.pendingCallFrom;
+    setNeutralPhase();
+    notify();
+    const nextSeat = (discarderSeat + 1) % 4;
+    state.turnSeat = nextSeat;
+    scheduleDraw(nextSeat);
+  }
+
   return {
     setOnChange,
     newGame,
@@ -330,8 +574,12 @@ MJ.Game = (function () {
     nextHand,
     humanDiscard,
     humanTsumo,
+    humanAnkan,
+    humanKakan,
     humanRon,
     humanSkipRon,
+    humanCall,
+    humanSkipCall,
     getState: () => state,
     seatLabel,
     round,

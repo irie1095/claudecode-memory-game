@@ -52,8 +52,8 @@ MJ.Tiles = (function () {
 
   const KANJI_NUM = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
 
-  // 牌の見た目（内部HTML）を返す。compact=trueなら捨て牌用の簡略表示
-  function tileVisualHtml(tile, compact) {
+  // 牌の見た目（内部HTML）を返す
+  function tileVisualHtml(tile) {
     const suit = suitOf(tile);
     const rank = rankOf(tile);
 
@@ -63,9 +63,6 @@ MJ.Tiles = (function () {
 
     if (suit === "p" || suit === "s") {
       const shapeClass = suit === "p" ? "pip-dot" : "pip-bar";
-      if (compact) {
-        return `<span class="pip ${shapeClass} pip-compact"></span><span class="pip-compact-num">${rank}</span>`;
-      }
       const items = new Array(rank).fill(`<span class="pip ${shapeClass}"></span>`).join("");
       return `<span class="pip-grid" data-count="${rank}">${items}</span>`;
     }

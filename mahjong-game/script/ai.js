@@ -10,5 +10,10 @@ MJ.AI = (function () {
     return true;
   }
 
-  return { chooseDiscard, wantsToWin };
+  // フェーズ5時点では仮ロジック（鳴ける時は常に鳴く）。本実装はフェーズ7。
+  function wantsToCall() {
+    return true;
+  }
+
+  return { chooseDiscard, wantsToWin, wantsToCall };
 })();
