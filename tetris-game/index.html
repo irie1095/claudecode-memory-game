@@ -8,7 +8,10 @@
 </head>
 <body>
   <main>
-    <h1>テトリス風ゲーム</h1>
+    <div class="header">
+      <a class="back-link" href="../index.html">← 戻る</a>
+      <h1>テトリス風ゲーム</h1>
+    </div>
     <p class="howto">PC: ← → で移動、↑で回転、↓でソフトドロップ、スペースでハードドロップ<br>スマホ: 下のボタンで操作</p>
 
     <div class="status-bar">
@@ -29,16 +32,16 @@
     <p id="message" class="message"></p>
 
     <div class="touch-controls">
-      <button id="btn-rotate" class="ctrl-btn ctrl-rotate">⟲</button>
       <div class="ctrl-row">
         <button id="btn-left" class="ctrl-btn">◀</button>
         <button id="btn-down" class="ctrl-btn">▼</button>
         <button id="btn-right" class="ctrl-btn">▶</button>
       </div>
-      <button id="btn-drop" class="ctrl-btn ctrl-drop">⤓ ハードドロップ</button>
+      <div class="ctrl-row">
+        <button id="btn-rotate" class="ctrl-btn ctrl-wide">⟲ 回転</button>
+        <button id="btn-drop" class="ctrl-btn ctrl-wide">⤓ ドロップ</button>
+      </div>
     </div>
-
-    <p><a href="../index.html">← 神経衰弱ゲームに戻る</a></p>
   </main>
 
   <script src="script.js"></script>

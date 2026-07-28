@@ -33,8 +33,25 @@ main {
   gap: 4px;
 }
 
-h1 {
+.header {
   flex-shrink: 0;
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-link {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+h1 {
   font-size: 1.15rem;
   margin: 0;
   letter-spacing: 0.04em;
@@ -53,7 +70,7 @@ h1 {
   line-height: 1.3;
 }
 
-@media (max-height: 700px) {
+@media (max-width: 600px) {
   .howto {
     display: none;
   }
@@ -181,7 +198,7 @@ h1 {
   border: 1px solid rgba(148, 163, 184, 0.3);
   color: #f1f5f9;
   border-radius: 10px;
-  padding: 10px 0;
+  padding: 13px 0;
   flex: 1;
   font-size: 1.1rem;
   cursor: pointer;
@@ -194,21 +211,12 @@ h1 {
   background: rgba(56, 189, 248, 0.3);
 }
 
-.ctrl-rotate {
-  width: 48px;
-  flex: none;
-  font-size: 1.3rem;
-}
-
-.ctrl-drop {
-  width: 100%;
-  font-size: 0.85rem;
+.ctrl-wide {
+  font-size: 0.9rem;
   font-weight: bold;
 }
 
 a {
-  flex-shrink: 0;
-  font-size: 0.75rem;
   color: #38bdf8;
   text-decoration: none;
 }
