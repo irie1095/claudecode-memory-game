@@ -15,5 +15,16 @@ MJ.AI = (function () {
     return true;
   }
 
-  return { chooseDiscard, wantsToWin, wantsToCall };
+  // hand（13枚）の中に、切ると聴牌になる牌があれば返す（無ければnull）
+  function findRiichiDiscard(hand) {
+    for (const tile of new Set(hand)) {
+      const testHand = hand.slice();
+      MJ.HandUtils.removeTile(testHand, tile);
+      const counts = MJ.HandUtils.toCounts(testHand);
+      if (MJ.Shanten.shanten(counts, 0) === 0) return tile;
+    }
+    return null;
+  }
+
+  return { chooseDiscard, wantsToWin, wantsToCall, findRiichiDiscard };
 })();

@@ -5,10 +5,12 @@ MJ.UI = (function () {
   let selectedTileIndex = null;
   let selectedTile = null;
   let lastHandLength = null;
+  let riichiArmed = false;
 
   function clearSelection() {
     selectedTileIndex = null;
     selectedTile = null;
+    riichiArmed = false;
   }
 
   function el(id) {
@@ -42,16 +44,18 @@ MJ.UI = (function () {
       .map((p, i) => {
         const dealerMark = G.isDealer(i) ? "(親)" : "";
         const label = i === 0 ? "あなた" : G.seatLabel(i);
-        return `<span class="score-chip">${label}${dealerMark} ${p.score}</span>`;
+        return `<span class="score-chip${p.riichi ? " riichi-chip" : ""}">${label}${dealerMark} ${p.score}</span>`;
       })
       .join("");
   }
 
-  function discardHtml(discards) {
-    return discards
+  // mode: 'up'(回転なし) / 'r90'(上家:90度) / 'r180'(対面:180度) / 'r270'(下家:270度)
+  function discardHtml(discards, mode) {
+    const tiles = discards
       .filter((d) => d.calledBy === null)
-      .map((d) => `<div class="d-tile ${T.tileFaceClass(d.tile)}">${T.tileVisualHtml(d.tile)}</div>`)
-      .join("");
+      .map((d) => `<div class="d-tile ${T.tileFaceClass(d.tile)}">${T.tileVisualHtml(d.tile)}</div>`);
+    if (mode === "up") return tiles.join("");
+    return tiles.map((t) => `<div class="d-tile-wrap-${mode.slice(1)}">${t}</div>`).join("");
   }
 
   const MELD_LABEL = { pon: "ポン", chi: "チー", minkan: "カン", kakan: "カン", ankan: "暗カン" };
@@ -78,9 +82,10 @@ MJ.UI = (function () {
   }
 
   function renderTable(state) {
-    el("discard-top").innerHTML = discardHtml(state.players[2].discards);
-    el("discard-left").innerHTML = discardHtml(state.players[3].discards);
-    el("discard-right").innerHTML = discardHtml(state.players[1].discards);
+    el("discard-top").innerHTML = discardHtml(state.players[2].discards, "r180");
+    el("discard-left").innerHTML = discardHtml(state.players[3].discards, "r90");
+    el("discard-right").innerHTML = discardHtml(state.players[1].discards, "r270");
+    el("discard-self").innerHTML = discardHtml(state.players[0].discards, "up");
 
     el("hand-count-right").innerHTML = `<span class="back-tile"></span><span class="back-count">${state.players[1].hand.length}</span>${meldSummaryText(state.players[1].melds)}`;
     el("hand-count-top").innerHTML = `<span class="back-tile"></span><span class="back-count">${state.players[2].hand.length}</span>${meldSummaryText(state.players[2].melds)}`;
@@ -94,7 +99,8 @@ MJ.UI = (function () {
   }
 
   function renderMessage(state) {
-    el("message").textContent = state.message || "";
+    const furitenNote = state.humanFuriten ? "【フリテン中：ロン不可】" : "";
+    el("message").textContent = [furitenNote, state.message].filter(Boolean).join(" ");
   }
 
   function renderHand(state) {
@@ -128,8 +134,9 @@ MJ.UI = (function () {
 
   function onTileClick(index, tile) {
     if (selectedTileIndex === index) {
+      const declareRiichi = riichiArmed;
       clearSelection();
-      G.humanDiscard(tile);
+      G.humanDiscard(tile, declareRiichi);
       return;
     }
     selectedTileIndex = index;
@@ -144,7 +151,8 @@ MJ.UI = (function () {
     el("btn-discard").hidden = !(isDiscardWait && selectedTile !== null);
     el("btn-tsumo").hidden = !(isDiscardWait && state.humanActions.canTsumo);
     el("btn-ron").hidden = !(state.phase === "HUMAN_RON_WAIT" && state.humanActions.canRon);
-    el("btn-riichi").hidden = true;
+    el("btn-riichi").hidden = !(isDiscardWait && state.humanCanRiichi);
+    el("btn-riichi").classList.toggle("act-armed", riichiArmed);
 
     el("btn-pon").hidden = !(isCallWait && state.pendingCallOptions.some((o) => o.type === "pon"));
     el("btn-chi").hidden = !(isCallWait && state.pendingCallOptions.some((o) => o.type === "chi"));
@@ -218,8 +226,13 @@ MJ.UI = (function () {
     el("btn-discard").addEventListener("click", () => {
       if (selectedTile === null) return;
       const tile = selectedTile;
+      const declareRiichi = riichiArmed;
       clearSelection();
-      G.humanDiscard(tile);
+      G.humanDiscard(tile, declareRiichi);
+    });
+    el("btn-riichi").addEventListener("click", () => {
+      riichiArmed = !riichiArmed;
+      render();
     });
     el("btn-tsumo").addEventListener("click", () => G.humanTsumo());
     el("btn-ron").addEventListener("click", () => G.humanRon());

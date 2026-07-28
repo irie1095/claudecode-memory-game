@@ -98,6 +98,12 @@ h1 {
   font-size: 0.62rem;
 }
 
+.riichi-chip {
+  color: #facc15;
+  border-color: rgba(250, 204, 21, 0.5);
+  box-shadow: 0 0 6px rgba(250, 204, 21, 0.4);
+}
+
 /* ---- table ---- */
 
 .table {
@@ -106,11 +112,12 @@ h1 {
   width: 100%;
   overflow: hidden;
   display: grid;
-  grid-template-columns: 80px 1fr 80px;
-  grid-template-rows: minmax(0, 1fr) minmax(0, 1.5fr);
+  grid-template-columns: 92px 1fr 92px;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
   grid-template-areas:
     "top top top"
-    "left center right";
+    "left center right"
+    "bottom bottom bottom";
   gap: 3px;
   background: rgba(2, 6, 23, 0.35);
   border: 1px solid rgba(148, 163, 184, 0.15);
@@ -138,6 +145,10 @@ h1 {
 
 .seat-right {
   grid-area: right;
+}
+
+.seat-bottom {
+  grid-area: bottom;
 }
 
 .seat-center {
@@ -178,9 +189,24 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 3px;
   scrollbar-width: none;
+}
+
+/* 上家は上から下へ、下家は下から上へ捨てていき、列が埋まったら右へ新しい列を作る */
+.seat-left .discard-grid,
+.seat-right .discard-grid {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.seat-left .discard-grid {
+  flex-direction: column;
+}
+
+.seat-right .discard-grid {
+  flex-direction: column-reverse;
 }
 
 .discard-grid::-webkit-scrollbar {
@@ -194,6 +220,38 @@ h1 {
   border-radius: 3px;
   font-size: 0.9rem;
   padding: 0;
+}
+
+/* 本物の麻雀卓の向き：対面=180度／上家=90度／下家=270度 */
+.d-tile-wrap-90,
+.d-tile-wrap-270 {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.d-tile-wrap-90 .d-tile {
+  transform: rotate(90deg);
+}
+
+.d-tile-wrap-270 .d-tile {
+  transform: rotate(270deg);
+}
+
+.d-tile-wrap-180 {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.d-tile-wrap-180 .d-tile {
+  transform: rotate(180deg);
 }
 
 .dora-tiles {
@@ -297,7 +355,7 @@ h1 {
 .meld-group .tile {
   flex: none;
   width: 20px;
-  padding: 4px 0;
+  height: 27px;
   font-size: 0.6rem;
   cursor: default;
 }
@@ -311,16 +369,18 @@ h1 {
 .hand-row {
   flex-shrink: 0;
   display: flex;
+  justify-content: center;
   gap: 2px;
   width: 100%;
   padding: 0 2px;
 }
 
 .tile {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 42px;
   border-radius: 4px;
-  padding: 8px 0;
+  padding: 0;
   font-size: 0.9rem;
   cursor: pointer;
   user-select: none;
@@ -523,4 +583,9 @@ h1 {
 .act-skip {
   background: rgba(148, 163, 184, 0.2);
   box-shadow: none;
+}
+
+.act-armed {
+  background: linear-gradient(135deg, #facc15, #f97316);
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.6);
 }

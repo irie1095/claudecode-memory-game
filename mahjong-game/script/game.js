@@ -7,6 +7,7 @@ MJ.Game = (function () {
     onChange = fn;
   }
   function notify() {
+    if (state) state.humanFuriten = checkFuriten(0);
     onChange();
   }
 
@@ -21,6 +22,7 @@ MJ.Game = (function () {
       honba: 0,
       riichiSticks: 0,
       dealerSeat: 0,
+      callHappened: false,
       players: [0, 1, 2, 3].map((i) => ({
         seatIndex: i,
         seatWind: T.EAST,
@@ -29,6 +31,10 @@ MJ.Game = (function () {
         melds: [],
         discards: [],
         isHuman: i === 0,
+        riichi: false,
+        doubleRiichi: false,
+        ippatsuEligible: false,
+        temporaryFuriten: false,
       })),
       wall: [],
       wallCursor: 0,
@@ -44,6 +50,8 @@ MJ.Game = (function () {
       humanActions: { canTsumo: false, canRon: false },
       humanTsumoResult: null,
       humanKanOptions: [],
+      humanCanRiichi: false,
+      humanFuriten: false,
       lastDrawnTile: null,
       pendingRon: null,
       pendingOtherRonners: [],
@@ -87,16 +95,17 @@ MJ.Game = (function () {
   }
 
   function buildContext(seat, winTile, isTsumo, extra) {
+    const p = player(seat);
     return Object.assign(
       {
-        seatWind: player(seat).seatWind,
+        seatWind: p.seatWind,
         roundWind: roundWind(),
         winTile,
         isTsumo,
         isDealer: isDealer(seat),
-        isRiichi: false,
-        isDoubleRiichi: false,
-        isIppatsu: false,
+        isRiichi: p.riichi,
+        isDoubleRiichi: p.doubleRiichi,
+        isIppatsu: p.ippatsuEligible,
         isRinshan: false,
         isChankan: false,
         isHaitei: false,
@@ -107,6 +116,17 @@ MJ.Game = (function () {
     );
   }
 
+  // 聴牌時、自分の待ち牌が自分の捨て牌にある（永久フリテン）か、
+  // 直前にロンを見送っている（一時フリテン）場合はロン不可
+  function checkFuriten(seat) {
+    const p = player(seat);
+    if (p.temporaryFuriten) return true;
+    const counts = MJ.HandUtils.toCounts(p.hand);
+    if (MJ.Shanten.shanten(counts, p.melds.length) !== 0) return false;
+    const waits = MJ.Shanten.getWaits(counts, p.melds.length);
+    return p.discards.some((d) => waits.includes(d.tile));
+  }
+
   function startHand() {
     state.wall = T.buildWall();
     state.liveWallEnd = state.wall.length - 14;
@@ -114,12 +134,17 @@ MJ.Game = (function () {
     state.deadWallCursor = 0;
     state.kanCount = 0;
     state.kanSeats = [];
+    state.callHappened = false;
     state.doraIndicators = [state.wall[state.liveWallEnd]];
     refreshWinds();
     for (const p of state.players) {
       p.hand = [];
       p.melds = [];
       p.discards = [];
+      p.riichi = false;
+      p.doubleRiichi = false;
+      p.ippatsuEligible = false;
+      p.temporaryFuriten = false;
     }
     for (let n = 0; n < 13; n++) {
       for (let i = 0; i < 4; i++) {
@@ -140,6 +165,7 @@ MJ.Game = (function () {
   }
 
   function computeKanOptions(p) {
+    if (p.riichi) return []; // リーチ後のカンは行わない簡略仕様
     const opts = [];
     const counts = MJ.HandUtils.toCounts(p.hand);
     for (let t = 0; t < 34; t++) {
@@ -152,6 +178,23 @@ MJ.Game = (function () {
   }
 
   function declareSelfKan(seat, opt) {
+    if (opt.kind === "kakan") {
+      // 槍槓判定：カン成立前に他家がロンできるか確認
+      const chankanRonners = [];
+      for (let i = 1; i <= 3; i++) {
+        const s = (seat + i) % 4;
+        if (checkFuriten(s)) continue;
+        const other = player(s);
+        const ctx = buildContext(s, opt.tile, false, { isChankan: true });
+        const result = MJ.Yaku.evaluateWin(other.hand.concat([opt.tile]), other.melds, ctx);
+        if (result.valid) chankanRonners.push({ seat: s, result });
+      }
+      if (chankanRonners.length > 0) {
+        for (const r of chankanRonners) resolveWin(r.seat, opt.tile, false, r.result, seat);
+        return;
+      }
+    }
+
     const p = player(seat);
     if (opt.kind === "ankan") {
       for (let i = 0; i < 4; i++) MJ.HandUtils.removeTile(p.hand, opt.tile);
@@ -161,6 +204,8 @@ MJ.Game = (function () {
       MJ.HandUtils.removeTile(p.hand, opt.tile);
       p.melds[idx] = { kind: "kakan", tiles: [opt.tile, opt.tile, opt.tile, opt.tile], from: p.melds[idx].from };
     }
+    state.callHappened = true;
+    for (const pl of state.players) pl.ippatsuEligible = false;
     registerKan(seat);
     drawRinshan(seat);
   }
@@ -173,6 +218,39 @@ MJ.Game = (function () {
   function isSuukaikan() {
     if (state.kanCount < 4) return false;
     return new Set(state.kanSeats).size > 1;
+  }
+
+  // リーチ宣言（tileを切って聴牌になる場合のみ有効）
+  function declareRiichiFor(seat, tile) {
+    const p = player(seat);
+    p.riichi = true;
+    p.doubleRiichi = p.discards.length === 0 && !state.callHappened;
+    p.ippatsuEligible = true;
+    p.score -= 1000;
+    state.riichiSticks += 1;
+  }
+
+  function canDeclareRiichi(p) {
+    return !p.riichi && p.melds.length === 0 && p.score >= 1000 && remainingLiveWall() >= 4;
+  }
+
+  function findRiichiDiscard(p) {
+    if (!canDeclareRiichi(p)) return null;
+    return MJ.AI.findRiichiDiscard(p.hand);
+  }
+
+  // CPUの打牌牌を決定する（新規リーチ宣言／リーチ後のツモ切り／通常選択）
+  function cpuDiscardChoice(seat) {
+    const p = player(seat);
+    if (!p.riichi) {
+      const riichiTile = findRiichiDiscard(p);
+      if (riichiTile !== null && MJ.AI.wantsToCall(p, { type: "riichi" }, state)) {
+        declareRiichiFor(seat, riichiTile);
+        return riichiTile;
+      }
+    }
+    if (p.riichi) return p.hand[p.hand.length - 1];
+    return MJ.AI.chooseDiscard(p, state);
   }
 
   function drawRinshan(seat) {
@@ -192,12 +270,14 @@ MJ.Game = (function () {
 
     const ctx = buildContext(seat, rinshanTile, true, { isRinshan: true });
     const result = MJ.Yaku.evaluateWin(p.hand.slice(), p.melds, ctx);
+    p.ippatsuEligible = false;
 
     if (seat === 0) {
       state.phase = "HUMAN_DISCARD_WAIT";
       state.humanActions = { canTsumo: result.valid, canRon: false };
       state.humanTsumoResult = result.valid ? result : null;
       state.humanKanOptions = computeKanOptions(p);
+      state.humanCanRiichi = canDeclareRiichi(p) && findRiichiDiscard(p) !== null;
       state.lastDrawnTile = rinshanTile;
       state.message = `嶺上牌: ${T.label(rinshanTile)}`;
       notify();
@@ -213,7 +293,7 @@ MJ.Game = (function () {
       declareSelfKan(seat, kanOptions[0]);
       return;
     }
-    const discardTile = MJ.AI.chooseDiscard(p, state);
+    const discardTile = cpuDiscardChoice(seat);
     setTimeout(() => doDiscard(seat, discardTile), 400);
   }
 
@@ -229,12 +309,14 @@ MJ.Game = (function () {
 
     const ctx = buildContext(seat, tile, true, { isHaitei });
     const result = MJ.Yaku.evaluateWin(p.hand.slice(), p.melds, ctx);
+    p.ippatsuEligible = false;
 
     if (seat === 0) {
       state.phase = "HUMAN_DISCARD_WAIT";
       state.humanActions = { canTsumo: result.valid, canRon: false };
       state.humanTsumoResult = result.valid ? result : null;
       state.humanKanOptions = state.deadWallCursor < 4 ? computeKanOptions(p) : [];
+      state.humanCanRiichi = canDeclareRiichi(p) && findRiichiDiscard(p) !== null;
       state.lastDrawnTile = tile;
       state.message = "あなたの番です（牌をタップして選択→「捨てる」で確定）";
       notify();
@@ -250,7 +332,7 @@ MJ.Game = (function () {
       declareSelfKan(seat, kanOptions[0]);
       return;
     }
-    const discardTile = MJ.AI.chooseDiscard(p, state);
+    const discardTile = cpuDiscardChoice(seat);
     setTimeout(() => doDiscard(seat, discardTile), 400);
   }
 
@@ -271,12 +353,14 @@ MJ.Game = (function () {
     const ponKan = [];
     for (let i = 1; i <= 3; i++) {
       const s = (discarderSeat + i) % 4;
-      const cnt = player(s).hand.filter((t) => t === tile).length;
+      const p = player(s);
+      if (p.riichi) continue; // リーチ後は鳴かない簡略仕様
+      const cnt = p.hand.filter((t) => t === tile).length;
       if (kanAvailable && cnt >= 3) ponKan.push({ seat: s, type: "kan", tile });
       if (cnt >= 2) ponKan.push({ seat: s, type: "pon", tile });
     }
     const chiSeat = (discarderSeat + 1) % 4;
-    const chiSets = computeChiSets(player(chiSeat).hand, tile);
+    const chiSets = player(chiSeat).riichi ? [] : computeChiSets(player(chiSeat).hand, tile);
     const chiOpts = chiSets.map((set) => ({ seat: chiSeat, type: "chi", tile, set }));
 
     const allOptions = ponKan.concat(chiOpts);
@@ -298,6 +382,9 @@ MJ.Game = (function () {
     const caller = player(choice.seat);
     const discards = player(discarderSeat).discards;
     discards[discards.length - 1].calledBy = choice.seat;
+
+    state.callHappened = true;
+    for (const pl of state.players) pl.ippatsuEligible = false;
 
     if (choice.type === "pon") {
       MJ.HandUtils.removeTile(caller.hand, choice.tile);
@@ -329,6 +416,7 @@ MJ.Game = (function () {
       state.humanActions = { canTsumo: false, canRon: false };
       state.humanTsumoResult = null;
       state.humanKanOptions = state.deadWallCursor < 4 ? computeKanOptions(player(0)) : [];
+      state.humanCanRiichi = false;
       state.lastDrawnTile = null;
       state.message = message + "。捨てる牌を選んでください";
       notify();
@@ -336,7 +424,7 @@ MJ.Game = (function () {
     }
     state.message = message;
     notify();
-    const discardTile = MJ.AI.chooseDiscard(player(seat), state);
+    const discardTile = cpuDiscardChoice(seat);
     setTimeout(() => doDiscard(seat, discardTile), 400);
   }
 
@@ -344,6 +432,7 @@ MJ.Game = (function () {
     const p = player(seat);
     MJ.HandUtils.removeTile(p.hand, tile);
     p.discards.push({ tile, calledBy: null });
+    p.temporaryFuriten = false;
     state.lastDiscard = { seat, tile };
     state.message = `${seatLabel(seat)}が${T.label(tile)}を捨てました`;
 
@@ -352,6 +441,7 @@ MJ.Game = (function () {
     const ronners = [];
     for (let i = 1; i <= 3; i++) {
       const otherSeat = (seat + i) % 4;
+      if (checkFuriten(otherSeat)) continue;
       const other = player(otherSeat);
       const ctx = buildContext(otherSeat, tile, false, { isHoutei });
       const result = MJ.Yaku.evaluateWin(other.hand.concat([tile]), other.melds, ctx);
@@ -402,6 +492,7 @@ MJ.Game = (function () {
     state.humanActions = { canTsumo: false, canRon: false };
     state.humanTsumoResult = null;
     state.humanKanOptions = [];
+    state.humanCanRiichi = false;
     state.lastDrawnTile = null;
     state.pendingRon = null;
     state.pendingOtherRonners = [];
@@ -500,8 +591,18 @@ MJ.Game = (function () {
 
   // ---- 人間の操作 ----
 
-  function humanDiscard(tile) {
+  function humanDiscard(tile, declareRiichi) {
     if (state.phase !== "HUMAN_DISCARD_WAIT") return;
+    const p = player(0);
+    if (p.riichi && tile !== state.lastDrawnTile) return; // リーチ後はツモ切りのみ
+    if (declareRiichi) {
+      if (!canDeclareRiichi(p)) return;
+      const testHand = p.hand.slice();
+      MJ.HandUtils.removeTile(testHand, tile);
+      const counts = MJ.HandUtils.toCounts(testHand);
+      if (MJ.Shanten.shanten(counts, 0) !== 0) return;
+      declareRiichiFor(0, tile);
+    }
     doDiscard(0, tile);
   }
 
@@ -539,6 +640,7 @@ MJ.Game = (function () {
     if (state.phase !== "HUMAN_RON_WAIT") return;
     const others = state.pendingOtherRonners || [];
     const discardSeat = state.lastDiscard.seat;
+    player(0).temporaryFuriten = true;
     for (const r of others) resolveWin(r.seat, state.lastDiscard.tile, false, r.result, discardSeat);
     if (state.phase === "ROUND_OVER") return; // 他家が代わりに和了した
     setNeutralPhase();
