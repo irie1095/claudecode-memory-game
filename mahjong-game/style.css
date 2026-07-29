@@ -128,11 +128,10 @@ h1 {
   overflow: hidden;
   display: grid;
   grid-template-columns: 128px 1fr 128px;
-  grid-template-rows: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1.3fr);
   grid-template-areas:
     "top top top"
-    "left center right"
-    "bottom bottom bottom";
+    "left center right";
   gap: 3px;
   background: rgba(2, 6, 23, 0.35);
   border: 1px solid rgba(148, 163, 184, 0.15);
@@ -160,10 +159,6 @@ h1 {
 
 .seat-right {
   grid-area: right;
-}
-
-.seat-bottom {
-  grid-area: bottom;
 }
 
 .seat-center {
@@ -269,6 +264,16 @@ h1 {
 
 .discard-grid::-webkit-scrollbar {
   display: none;
+}
+
+/* 自分の捨て牌は卓から切り離し、手牌の近くに固定の高さで表示する */
+.self-discard-grid {
+  flex: 0 0 auto;
+  max-height: 90px;
+  background: rgba(2, 6, 23, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 10px;
+  padding: 4px;
 }
 
 .d-tile {
