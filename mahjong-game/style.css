@@ -57,6 +57,21 @@ main {
   text-decoration: underline;
 }
 
+.credit-link {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.55rem;
+  color: #64748b;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.credit-link:hover {
+  text-decoration: underline;
+}
+
 h1 {
   font-size: 1.1rem;
   margin: 0;
@@ -183,21 +198,14 @@ h1 {
   scrollbar-width: none;
 }
 
+.melds-row-mini:not(:empty) {
+  padding-bottom: 3px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
 .melds-row-mini::-webkit-scrollbar {
   display: none;
-}
-
-/* 副露の牌も本物の卓の向きに合わせる：対面=180度／上家=90度／下家=270度 */
-.seat-top .meld-group .tile {
-  transform: rotate(180deg);
-}
-
-.seat-left .meld-group .tile {
-  transform: rotate(90deg);
-}
-
-.seat-right .meld-group .tile {
-  transform: rotate(270deg);
 }
 
 .back-tile {
@@ -220,6 +228,12 @@ h1 {
   justify-content: flex-start;
   gap: 3px;
   scrollbar-width: none;
+}
+
+/* 対面は自分の並びを180度回転させた配置（右下から左上へ積む） */
+.seat-top .discard-grid {
+  flex-direction: row-reverse;
+  flex-wrap: wrap-reverse;
 }
 
 /* 上家・下家：5行で1列。収まらなければ牌のサイズを保ったまま横に列を増やす */
@@ -259,8 +273,8 @@ h1 {
 
 .d-tile {
   flex: 0 0 auto;
-  width: 32px;
-  height: 42px;
+  width: 22px;
+  height: 29px;
   border-radius: 3px;
   font-size: 0.9rem;
   padding: 0;
@@ -277,17 +291,17 @@ h1 {
 }
 
 .d-tile-wrap-90 .d-tile {
-  transform: rotate(90deg) scale(0.69);
+  transform: rotate(90deg);
 }
 
 .d-tile-wrap-270 .d-tile {
-  transform: rotate(270deg) scale(0.69);
+  transform: rotate(270deg);
 }
 
 .d-tile-wrap-180 {
   flex: 0 0 auto;
-  width: 32px;
-  height: 42px;
+  width: 22px;
+  height: 29px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -431,6 +445,16 @@ h1 {
   transition: transform 0.1s;
 }
 
+/* 手牌は画面幅に応じて自動的に縮む（幅32pxを上限に、入りきらない時だけ縮小） */
+.hand-row .tile {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 32px;
+  width: auto;
+  height: auto;
+  aspect-ratio: 32 / 42;
+}
+
 .tile.selected {
   transform: translateY(-8px);
 }
@@ -439,158 +463,28 @@ h1 {
   margin-left: 4px;
 }
 
-/* ---- 牌の柄（萬子=漢数字／筒子=丸／索子=棒／字牌=漢字） ---- */
+/* ---- 牌の見た目（Wikimedia Commonsの牌画像を使用） ---- */
 
 .tile,
 .d-tile,
 .tile-mini {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(160deg, #ffffff 0%, #f1f5f9 55%, #dde4ec 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -3px 4px rgba(15, 23, 42, 0.08),
-    0 2px 3px rgba(2, 6, 23, 0.45);
+  border-radius: 12%;
+  box-shadow: 0 2px 3px rgba(2, 6, 23, 0.5);
 }
 
 .tile.selected,
 .tile.drawn {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -3px 4px rgba(15, 23, 42, 0.08),
-    0 0 0 2px #38bdf8, 0 2px 4px rgba(2, 6, 23, 0.5);
+  box-shadow: 0 0 0 2px #38bdf8, 0 2px 3px rgba(2, 6, 23, 0.5);
 }
 
-.pai-kanji {
-  display: block;
-  font-family: "Hiragino Mincho ProN", "Yu Mincho", "MS Mincho", serif;
-  font-size: 1.2em;
-  font-weight: bold;
-  line-height: 1.1;
-  color: #1e293b;
-}
-
-.pai-kanji-red {
-  color: #b91c1c;
-}
-
-.pai-suit-label {
-  display: block;
-  font-family: "Hiragino Mincho ProN", "Yu Mincho", "MS Mincho", serif;
-  font-size: 0.55em;
-  line-height: 1.2;
-  color: #1e293b;
-}
-
-.pai-green .pai-kanji {
-  color: #15803d;
-}
-
-.pai-red .pai-kanji {
-  color: #b91c1c;
-}
-
-.pip-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: 4%;
-  width: 80%;
-  height: 80%;
-  justify-items: center;
-  align-items: center;
-}
-
-.pip-dot {
-  width: 0.36em;
-  height: 0.36em;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #60a5fa, #1d4ed8 70%);
-  box-shadow: 0 1px 1px rgba(15, 23, 42, 0.4);
-}
-
-.pip-bar {
-  width: 0.16em;
-  height: 0.46em;
-  border-radius: 1px;
-  background: linear-gradient(180deg, #4ade80, #15803d);
-  box-shadow: 0 1px 1px rgba(15, 23, 42, 0.35);
-}
-
-/* 1〜5個は伝統的なサイコロ目配置、6〜9個はグリッドに自然に敷き詰める */
-.pip-grid[data-count="1"] .pip {
-  grid-row: 2;
-  grid-column: 2;
-}
-
-.pip-grid[data-count="2"] .pip:nth-child(1) {
-  grid-row: 1;
-  grid-column: 3;
-}
-.pip-grid[data-count="2"] .pip:nth-child(2) {
-  grid-row: 3;
-  grid-column: 1;
-}
-
-.pip-grid[data-count="3"] .pip:nth-child(1) {
-  grid-row: 1;
-  grid-column: 3;
-}
-.pip-grid[data-count="3"] .pip:nth-child(2) {
-  grid-row: 2;
-  grid-column: 2;
-}
-.pip-grid[data-count="3"] .pip:nth-child(3) {
-  grid-row: 3;
-  grid-column: 1;
-}
-
-.pip-grid[data-count="4"] .pip:nth-child(1) {
-  grid-row: 1;
-  grid-column: 1;
-}
-.pip-grid[data-count="4"] .pip:nth-child(2) {
-  grid-row: 1;
-  grid-column: 3;
-}
-.pip-grid[data-count="4"] .pip:nth-child(3) {
-  grid-row: 3;
-  grid-column: 1;
-}
-.pip-grid[data-count="4"] .pip:nth-child(4) {
-  grid-row: 3;
-  grid-column: 3;
-}
-
-.pip-grid[data-count="5"] .pip:nth-child(1) {
-  grid-row: 1;
-  grid-column: 1;
-}
-.pip-grid[data-count="5"] .pip:nth-child(2) {
-  grid-row: 1;
-  grid-column: 3;
-}
-.pip-grid[data-count="5"] .pip:nth-child(3) {
-  grid-row: 2;
-  grid-column: 2;
-}
-.pip-grid[data-count="5"] .pip:nth-child(4) {
-  grid-row: 3;
-  grid-column: 1;
-}
-.pip-grid[data-count="5"] .pip:nth-child(5) {
-  grid-row: 3;
-  grid-column: 3;
-}
-
-.pai-haku {
-  display: block;
-  width: 62%;
-  height: 55%;
-  border: 3px double #b91c1c;
-  border-radius: 3px;
-}
-
-.pai-haku-face {
-  background: linear-gradient(160deg, #ffffff 0%, #fef2f2 55%, #fee2e2 100%);
+.pai-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
 }
 
 /* ---- actions ---- */

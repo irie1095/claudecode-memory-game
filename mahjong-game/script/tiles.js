@@ -50,38 +50,18 @@ MJ.Tiles = (function () {
     return LABELS[tile];
   }
 
-  const KANJI_NUM = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+  // Wikimedia Commons「SVG Planar illustrations of Mahjong tiles」の画像ファイル名（tile 0-33 に対応）
+  // 作者: 蔡蜜 / CC BY-SA 4.0 / https://commons.wikimedia.org/wiki/Category:SVG_Planar_illustrations_of_Mahjong_tiles
+  const TILE_FILES = [
+    "1m", "2m", "3m", "4m", "5m", "6m", "7m", "8m", "9m",
+    "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p",
+    "1s", "2s", "3s", "4s", "5s", "6s", "7s", "8s", "9s",
+    "E", "S", "W", "N", "H", "R", "T", // 東南西北 / 白(H) 發(R) 中(T)
+  ];
 
   // 牌の見た目（内部HTML）を返す
   function tileVisualHtml(tile) {
-    const suit = suitOf(tile);
-    const rank = rankOf(tile);
-
-    if (suit === "m") {
-      return `<span class="pai-kanji pai-kanji-red">${KANJI_NUM[rank]}</span><span class="pai-suit-label">萬</span>`;
-    }
-
-    if (suit === "p" || suit === "s") {
-      const shapeClass = suit === "p" ? "pip-dot" : "pip-bar";
-      const items = new Array(rank).fill(`<span class="pip ${shapeClass}"></span>`).join("");
-      return `<span class="pip-grid" data-count="${rank}">${items}</span>`;
-    }
-
-    if (tile === HAKU) {
-      return `<span class="pai-haku"></span>`;
-    }
-    return `<span class="pai-kanji">${label(tile)}</span>`;
-  }
-
-  // 牌の色分け用CSSクラス
-  function tileFaceClass(tile) {
-    if (suitOf(tile) === "m") return "pai-m";
-    if (suitOf(tile) === "p") return "pai-p";
-    if (suitOf(tile) === "s") return "pai-s";
-    if (tile === HATSU) return "pai-green";
-    if (tile === CHUN) return "pai-red";
-    if (tile === HAKU) return "pai-haku-face";
-    return "pai-wind";
+    return `<img class="pai-img" src="tiles/${TILE_FILES[tile]}.svg" alt="${label(tile)}" draggable="false">`;
   }
 
   function shuffle(array) {
@@ -120,6 +100,6 @@ MJ.Tiles = (function () {
     isSuited, isHonor, suitOf, rankOf,
     isTerminal, isTerminalOrHonor, isWindTile, isDragonTile,
     label, shuffle, buildWall, doraFromIndicator,
-    tileVisualHtml, tileFaceClass,
+    tileVisualHtml,
   };
 })();

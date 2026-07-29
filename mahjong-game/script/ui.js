@@ -53,21 +53,18 @@ MJ.UI = (function () {
   function discardHtml(discards, mode) {
     const tiles = discards
       .filter((d) => d.calledBy === null)
-      .map((d) => `<div class="d-tile ${T.tileFaceClass(d.tile)}">${T.tileVisualHtml(d.tile)}</div>`);
+      .map((d) => `<div class="d-tile">${T.tileVisualHtml(d.tile)}</div>`);
     if (mode === "up") return tiles.join("");
     return tiles.map((t) => `<div class="d-tile-wrap-${mode.slice(1)}">${t}</div>`).join("");
   }
 
+  // 副露は向きを揃えず、常に正立の小さい牌を並べる（崩れを防ぐためシンプルにする）
   function meldGroupHtml(melds) {
     return melds
       .map((m) => {
         const tiles = m.kind === "ankan" ? [null, m.tiles[0], m.tiles[0], null] : m.tiles;
         const inner = tiles
-          .map((t) =>
-            t === null
-              ? `<div class="tile back-mini"></div>`
-              : `<div class="tile ${T.tileFaceClass(t)}">${T.tileVisualHtml(t)}</div>`
-          )
+          .map((t) => (t === null ? `<div class="tile back-mini"></div>` : `<div class="tile">${T.tileVisualHtml(t)}</div>`))
           .join("");
         return `<div class="meld-group">${inner}</div>`;
       })
@@ -89,7 +86,7 @@ MJ.UI = (function () {
     el("melds-right").innerHTML = meldGroupHtml(state.players[1].melds);
 
     el("dora-tiles").innerHTML = state.doraIndicators
-      .map((t) => `<div class="tile tile-mini ${T.tileFaceClass(t)}">${T.tileVisualHtml(t)}</div>`)
+      .map((t) => `<div class="tile tile-mini">${T.tileVisualHtml(t)}</div>`)
       .join("");
 
     el("human-melds").innerHTML = meldGroupHtml(state.players[0].melds);
@@ -112,7 +109,7 @@ MJ.UI = (function () {
 
     el("hand-row").innerHTML = sorted
       .map((tile, i) => {
-        const classes = ["tile", T.tileFaceClass(tile)];
+        const classes = ["tile"];
         if (drawnTile !== null && tile === drawnTile && sorted.lastIndexOf(tile) === i) classes.push("drawn");
         if (selectedTileIndex === i) classes.push("selected");
         return `<div class="${classes.join(" ")}" data-index="${i}">${T.tileVisualHtml(tile)}</div>`;
