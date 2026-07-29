@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>神経衰弱ゲーム</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <p><a href="../index.html">← トップに戻る</a></p>
+    <h1>神経衰弱ゲーム</h1>
+
+    <div class="status-bar">
+      <label for="difficulty">難易度:
+        <select id="difficulty">
+          <option value="easy">かんたん（8ペア）</option>
+          <option value="normal" selected>ふつう（12ペア）</option>
+          <option value="hard">むずかしい（18ペア）</option>
+        </select>
+      </label>
+      <span>手数: <strong id="moves">0</strong></span>
+      <span>経過時間: <strong id="timer">0</strong>秒</span>
+      <button id="restart">最初から</button>
+    </div>
+
+    <div id="board" class="board"></div>
+
+    <p id="message" class="message"></p>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

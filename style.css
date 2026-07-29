@@ -3,12 +3,12 @@
 }
 
 body {
-  font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", sans-serif;
-  background: #1e293b;
+  font-family: "Trebuchet MS", "Segoe UI", "Hiragino Kaku Gothic ProN", sans-serif;
+  background: radial-gradient(ellipse at top, #1e293b 0%, #020617 70%);
   color: #f1f5f9;
   display: flex;
   justify-content: center;
-  padding: 16px;
+  padding: 24px 16px;
   min-height: 100vh;
   min-height: 100dvh;
   margin: 0;
@@ -16,83 +16,61 @@ body {
 
 main {
   width: 100%;
-  max-width: 480px;
+  max-width: 420px;
   text-align: center;
 }
 
 h1 {
-  font-size: 1.3rem;
-  margin: 0 0 10px;
+  font-size: 1.6rem;
+  margin: 0 0 6px;
+  letter-spacing: 0.04em;
+  background: linear-gradient(90deg, #7dd3fc, #f0abfc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 24px rgba(125, 211, 252, 0.35);
 }
 
-.status-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
+.lead {
+  color: #94a3b8;
   font-size: 0.9rem;
+  margin: 0 0 24px;
 }
 
-.status-bar button {
-  background: #38bdf8;
-  color: #0f172a;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 14px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.status-bar button:hover {
-  background: #7dd3fc;
-}
-
-.board {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  width: min(100%, 60vh);
-  margin: 0 auto;
-}
-
-.card {
-  aspect-ratio: 1 / 1;
-  border-radius: 8px;
-  background: #334155;
+.menu {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(1rem, 6vw, 1.8rem);
-  cursor: pointer;
-  user-select: none;
-  transition: transform 0.15s, background 0.15s;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.card:hover {
-  background: #475569;
+.game-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 16px 18px;
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  text-align: left;
+  transition: transform 0.15s, background 0.15s, border-color 0.15s;
 }
 
-.card.flipped,
-.card.matched {
-  background: #f8fafc;
-  color: #0f172a;
+.game-card:hover {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(125, 211, 252, 0.5);
+  transform: translateY(-2px);
 }
 
-.card.matched {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.message {
-  margin-top: 20px;
-  font-size: 1.2rem;
+.game-title {
+  font-size: 1.05rem;
   font-weight: bold;
-  color: #4ade80;
-  min-height: 1.5em;
+  color: #7dd3fc;
 }
 
-a {
-  color: #38bdf8;
+.game-desc {
+  font-size: 0.8rem;
+  color: #94a3b8;
 }

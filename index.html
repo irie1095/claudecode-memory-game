@@ -3,35 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>神経衰弱ゲーム</title>
+<title>ClaudeCode ゲーム集</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main>
-    <h1>神経衰弱ゲーム</h1>
+    <h1>ClaudeCode ゲーム集</h1>
+    <p class="lead">遊びたいゲームを選んでください</p>
 
-    <div class="status-bar">
-      <label for="difficulty">難易度:
-        <select id="difficulty">
-          <option value="easy">かんたん（8ペア）</option>
-          <option value="normal" selected>ふつう（12ペア）</option>
-          <option value="hard">むずかしい（18ペア）</option>
-        </select>
-      </label>
-      <span>手数: <strong id="moves">0</strong></span>
-      <span>経過時間: <strong id="timer">0</strong>秒</span>
-      <button id="restart">最初から</button>
-    </div>
-
-    <div id="board" class="board"></div>
-
-    <p id="message" class="message"></p>
-
-    <p><a href="shooting-game/index.html">シューティングゲームで遊ぶ →</a></p>
-    <p><a href="tetris-game/index.html">テトリス風ゲームで遊ぶ →</a></p>
-    <p><a href="mahjong-game/index.html">麻雀ゲームで遊ぶ →</a></p>
+    <nav class="menu">
+      <a class="game-card" href="memory-game/index.html">
+        <span class="game-title">神経衰弱ゲーム</span>
+        <span class="game-desc">カードをめくってペアを揃えよう</span>
+      </a>
+      <a class="game-card" href="shooting-game/index.html">
+        <span class="game-title">シューティングゲーム</span>
+        <span class="game-desc">敵を避けながら撃ち抜こう</span>
+      </a>
+      <a class="game-card" href="tetris-game/index.html">
+        <span class="game-title">テトリス風ゲーム</span>
+        <span class="game-desc">落ちてくるブロックを揃えよう</span>
+      </a>
+      <a class="game-card" href="mahjong-game/index.html">
+        <span class="game-title">麻雀ゲーム</span>
+        <span class="game-desc">4人打ち・CPU対戦の本格麻雀</span>
+      </a>
+    </nav>
   </main>
-
-  <script src="script.js"></script>
 </body>
 </html>
