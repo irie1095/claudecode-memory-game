@@ -162,6 +162,16 @@ MJ.UI = (function () {
     return list.map((y) => (y.yakuman ? `${y.name} 役満` : `${y.name} ${y.han}翻`)).join(" / ");
   }
 
+  // 和了時の手牌を表示（和了牌には目印を付ける。同じ牌が複数あれば最後の1枚を和了牌とみなす）
+  function resultHandHtml(r) {
+    const sorted = r.hand.slice().sort((a, b) => a - b);
+    const winIndex = sorted.lastIndexOf(r.winTile);
+    const handTiles = sorted
+      .map((t, i) => `<div class="tile${i === winIndex ? " win-tile" : ""}">${T.tileVisualHtml(t)}</div>`)
+      .join("");
+    return `<div class="result-hand">${handTiles}${meldGroupHtml(r.melds)}</div>`;
+  }
+
   function renderResult(state) {
     const overlay = el("result-overlay");
 
@@ -188,22 +198,25 @@ MJ.UI = (function () {
     }
 
     const r = state.result;
-    let title, scoreLine, yakuLine;
+    let title, scoreLine, yakuLine, handHtml;
     if (r.type === "ryuukyoku") {
       title = r.abortive ? "四開槓（途中流局）" : "流局";
       yakuLine = r.abortive
         ? "カンが4回続いたため途中流局となりました"
         : `聴牌: ${r.tenpaiSeats.map((s) => (s === 0 ? "あなた" : G.seatLabel(s))).join("・") || "なし"}`;
       scoreLine = "";
+      handHtml = "";
     } else {
       title = `${r.seat === 0 ? "あなた" : G.seatLabel(r.seat)}の${r.type === "tsumo" ? "ツモ" : "ロン"}`;
       yakuLine = yakuListHtml(r.yakuList);
       scoreLine = r.isYakuman ? `役満 ${r.score.total}点` : `${r.han}翻${r.fu}符 ${r.score.total}点相当`;
+      handHtml = resultHandHtml(r);
     }
 
     overlay.innerHTML = `
       <div class="result-card">
         <p class="result-title">${title}</p>
+        ${handHtml}
         <p class="result-yaku">${yakuLine}</p>
         <p class="result-score">${scoreLine}</p>
         <button class="result-next-btn" id="btn-next">次の局へ</button>

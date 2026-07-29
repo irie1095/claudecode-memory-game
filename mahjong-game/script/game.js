@@ -274,6 +274,14 @@ MJ.Game = (function () {
     p.ippatsuEligible = false;
 
     if (seat === 0) {
+      if (p.riichi && !result.valid) {
+        state.phase = "RESOLVING";
+        state.lastDrawnTile = rinshanTile;
+        state.message = `ツモ切り: ${T.label(rinshanTile)}`;
+        notify();
+        setTimeout(() => doDiscard(0, rinshanTile), 500);
+        return;
+      }
       state.phase = "HUMAN_DISCARD_WAIT";
       state.humanActions = { canTsumo: result.valid, canRon: false };
       state.humanTsumoResult = result.valid ? result : null;
@@ -313,6 +321,14 @@ MJ.Game = (function () {
     p.ippatsuEligible = false;
 
     if (seat === 0) {
+      if (p.riichi && !result.valid) {
+        state.phase = "RESOLVING";
+        state.lastDrawnTile = tile;
+        state.message = `ツモ切り: ${T.label(tile)}`;
+        notify();
+        setTimeout(() => doDiscard(0, tile), 500);
+        return;
+      }
       state.phase = "HUMAN_DISCARD_WAIT";
       state.humanActions = { canTsumo: result.valid, canRon: false };
       state.humanTsumoResult = result.valid ? result : null;
@@ -531,6 +547,8 @@ MJ.Game = (function () {
       type: isTsumo ? "tsumo" : "ron",
       seat,
       winTile,
+      hand: isTsumo ? p.hand.slice() : p.hand.concat([winTile]),
+      melds: p.melds.slice(),
       yakuList: result.list,
       han: result.isYakuman ? null : result.han,
       fu: result.isYakuman ? null : result.fu,
