@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNOゲーム</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <div class="header">
+      <a class="back-link" href="../index.html">← 戻る</a>
+      <h1>UNOゲーム</h1>
+    </div>
+
+    <div id="screen-setup" class="screen">
+      <div class="setup-step" id="step-mode">
+        <p class="setup-label">モードを選んでください</p>
+        <div class="mode-choices">
+          <button class="mode-btn" id="mode-cpu">CPU対戦</button>
+          <button class="mode-btn" id="mode-pass">みんなで対戦（パス&amp;プレイ）</button>
+        </div>
+      </div>
+
+      <div class="setup-step" id="step-cpu-count" hidden>
+        <p class="setup-label">CPUの人数</p>
+        <div class="stepper" id="cpu-count-stepper">
+          <button class="stepper-btn" data-count="1">1人</button>
+          <button class="stepper-btn" data-count="2">2人</button>
+          <button class="stepper-btn" data-count="3">3人</button>
+        </div>
+        <button class="start-btn" id="start-cpu" hidden>はじめる</button>
+      </div>
+
+      <div class="setup-step" id="step-pass-count" hidden>
+        <p class="setup-label">参加人数</p>
+        <div class="stepper" id="pass-count-stepper">
+          <button class="stepper-btn" data-count="2">2人</button>
+          <button class="stepper-btn" data-count="3">3人</button>
+          <button class="stepper-btn" data-count="4">4人</button>
+          <button class="stepper-btn" data-count="5">5人</button>
+          <button class="stepper-btn" data-count="6">6人</button>
+        </div>
+        <div class="name-inputs" id="name-inputs"></div>
+        <button class="start-btn" id="start-pass" hidden>はじめる</button>
+      </div>
+    </div>
+
+    <div id="screen-game" class="screen" hidden>
+      <div class="status-bar" id="status-bar"></div>
+      <div class="opponents-row" id="opponents-row"></div>
+
+      <div class="play-area" id="play-area">
+        <div class="pile draw-pile" id="draw-pile">
+          <div class="card card-back"></div>
+          <span class="pile-count" id="draw-count"></span>
+        </div>
+        <div class="pile discard-pile" id="discard-top"></div>
+      </div>
+
+      <p class="message" id="message"></p>
+
+      <div class="hand-row" id="hand-row"></div>
+
+      <div class="action-buttons" id="action-buttons">
+        <button class="act-btn" id="btn-draw" hidden>山札から引く</button>
+        <button class="act-btn" id="btn-play-drawn" hidden>引いた札を出す</button>
+        <button class="act-btn act-skip" id="btn-keep" hidden>そのまま次へ</button>
+        <button class="act-btn act-uno" id="btn-uno" hidden>UNO!</button>
+      </div>
+
+      <div class="overlay" id="color-overlay">
+        <div class="overlay-card">
+          <p class="overlay-title">色を選んでください</p>
+          <div class="color-choices">
+            <button class="color-btn color-red" data-color="red"></button>
+            <button class="color-btn color-yellow" data-color="yellow"></button>
+            <button class="color-btn color-green" data-color="green"></button>
+            <button class="color-btn color-blue" data-color="blue"></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="overlay" id="hidden-hand-overlay">
+        <div class="overlay-card">
+          <p class="overlay-title" id="hidden-hand-title"></p>
+          <p class="overlay-message" id="hidden-hand-message"></p>
+          <button class="start-btn" id="btn-reveal">タップして手札を表示</button>
+          <button class="act-btn act-skip" id="btn-skip-call" hidden>宣言しない</button>
+        </div>
+      </div>
+
+      <div class="overlay" id="result-overlay">
+        <div class="overlay-card">
+          <p class="overlay-title" id="result-title"></p>
+          <p class="overlay-message" id="result-message"></p>
+          <div class="score-table" id="score-table"></div>
+          <button class="start-btn" id="btn-next-round" hidden>次のラウンドへ</button>
+          <button class="start-btn" id="btn-restart" hidden>トップへ戻る</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="script/cards.js"></script>
+  <script src="script/engine.js"></script>
+  <script src="script/ai.js"></script>
+  <script src="script/ui.js"></script>
+  <script src="script/setup.js"></script>
+  <script src="script/main.js"></script>
+</body>
+</html>
