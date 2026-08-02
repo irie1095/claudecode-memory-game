@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>オセロゲーム</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <div class="header">
+      <a class="back-link" href="../index.html">← 戻る</a>
+      <h1>オセロゲーム</h1>
+    </div>
+
+    <div id="screen-setup" class="screen">
+      <div class="setup-step" id="step-mode">
+        <p class="setup-label">モードを選んでください</p>
+        <div class="mode-choices">
+          <button class="mode-btn" id="mode-cpu">CPU対戦</button>
+          <button class="mode-btn" id="mode-pass">みんなで対戦（パス&amp;プレイ）</button>
+        </div>
+      </div>
+
+      <div class="setup-step" id="step-difficulty" hidden>
+        <p class="setup-label">CPUの強さ</p>
+        <div class="stepper" id="difficulty-stepper">
+          <button class="stepper-btn" data-difficulty="easy">弱い</button>
+          <button class="stepper-btn" data-difficulty="normal">普通</button>
+          <button class="stepper-btn" data-difficulty="hard">強い</button>
+        </div>
+        <button class="start-btn" id="start-cpu" hidden>はじめる</button>
+      </div>
+
+      <div class="setup-step" id="step-pass-players" hidden>
+        <p class="setup-label">プレイヤー名（省略可）</p>
+        <div class="name-inputs" id="name-inputs">
+          <input type="text" id="name-input-0" maxlength="8" placeholder="黒プレイヤー">
+          <input type="text" id="name-input-1" maxlength="8" placeholder="白プレイヤー">
+        </div>
+        <button class="start-btn" id="start-pass">はじめる</button>
+      </div>
+    </div>
+
+    <div id="screen-game" class="screen" hidden>
+      <div class="status-bar" id="status-bar"></div>
+      <p class="message" id="message"></p>
+
+      <div class="board-wrap" id="board-wrap">
+        <div class="board" id="board"></div>
+      </div>
+
+      <div class="overlay" id="pass-overlay">
+        <div class="overlay-card">
+          <p class="overlay-title" id="pass-title"></p>
+          <p class="overlay-message" id="pass-message"></p>
+          <button class="start-btn" id="btn-pass-continue">つぎへ</button>
+        </div>
+      </div>
+
+      <div class="overlay" id="result-overlay">
+        <div class="overlay-card">
+          <p class="overlay-title" id="result-title"></p>
+          <p class="overlay-message" id="result-message"></p>
+          <button class="start-btn" id="btn-restart">トップへ戻る</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="script/board.js"></script>
+  <script src="script/engine.js"></script>
+  <script src="script/ai.js"></script>
+  <script src="script/ui.js"></script>
+  <script src="script/setup.js"></script>
+  <script src="script/main.js"></script>
+</body>
+</html>
