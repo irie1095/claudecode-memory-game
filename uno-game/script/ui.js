@@ -275,7 +275,16 @@ UNO.UI = (function () {
     const colorClass = card.color === "wild" ? "card-wild" : `card-${card.color}`;
     div.className = `card ${colorClass}`;
 
-    if (card.value === "skip") {
+    const isNumber = card.color !== "wild" && /^[0-9]$/.test(card.value);
+    if (isNumber) {
+      const oval = document.createElement("span");
+      oval.className = "card-oval";
+      div.appendChild(oval);
+      const s = document.createElement("span");
+      s.className = "card-main-symbol";
+      s.textContent = card.value;
+      div.appendChild(s);
+    } else if (card.value === "skip") {
       div.appendChild(symbolEl("icon-skip"));
     } else if (card.value === "reverse") {
       const s = symbolEl("icon-reverse");
@@ -291,18 +300,23 @@ UNO.UI = (function () {
       div.appendChild(s);
     } else if (card.value === "wild") {
       div.appendChild(symbolEl("icon-wild"));
-    } else {
-      const s = document.createElement("span");
-      s.className = "card-symbol";
-      s.textContent = card.value;
-      div.appendChild(s);
     }
 
+    const topIndex = document.createElement("span");
+    topIndex.className = "card-corner";
+    topIndex.textContent = cornerLabel(card);
+    div.appendChild(topIndex);
+
+    const bottomIndex = document.createElement("span");
+    bottomIndex.className = "card-corner-bottom";
+    bottomIndex.textContent = cornerLabel(card);
+    div.appendChild(bottomIndex);
+
     if (card.color === "wild" && opts.effectiveColor) {
-      const corner = document.createElement("span");
-      corner.className = "card-corner";
-      corner.textContent = colorLabel(opts.effectiveColor);
-      div.appendChild(corner);
+      const tag = document.createElement("span");
+      tag.className = "card-color-tag";
+      tag.textContent = colorLabel(opts.effectiveColor);
+      div.appendChild(tag);
       div.style.boxShadow = `inset 0 0 0 3px ${colorHex(opts.effectiveColor)}`;
     }
 
@@ -313,6 +327,15 @@ UNO.UI = (function () {
     const s = document.createElement("span");
     s.className = `card-symbol ${iconClass}`;
     return s;
+  }
+
+  function cornerLabel(card) {
+    if (card.value === "skip") return "⊘";
+    if (card.value === "reverse") return "⇄";
+    if (card.value === "draw2") return "+2";
+    if (card.value === "wild4") return "+4";
+    if (card.value === "wild") return "★";
+    return card.value;
   }
 
   function colorLabel(color) {
