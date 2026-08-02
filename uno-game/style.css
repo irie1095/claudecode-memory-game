@@ -448,18 +448,19 @@ h1 {
 .hand-row {
   flex-shrink: 0;
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 3px;
+  align-content: flex-start;
+  gap: 4px;
   width: 100%;
   padding: 0 2px;
 }
 
 .hand-row .card {
-  flex: 1 1 0;
-  min-width: 0;
-  max-width: 56px;
-  width: auto;
+  flex: 0 0 auto;
+  width: 44px;
   height: auto;
+  font-size: 1.3rem;
   cursor: pointer;
   transition: transform 0.1s;
 }
