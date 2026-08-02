@@ -3,6 +3,7 @@ OTH.Setup = (function () {
   const B = OTH.Board;
 
   let difficulty = "normal";
+  let turnOrder = "first"; // "first"=自分が黒で先攻, "second"=自分が白で後攻
 
   function init() {
     document.getElementById("mode-cpu").addEventListener("click", () => selectMode("cpu"));
@@ -17,6 +18,14 @@ OTH.Setup = (function () {
       });
     });
 
+    const orderStepper = document.getElementById("turn-order-stepper");
+    orderStepper.querySelectorAll(".stepper-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        turnOrder = btn.dataset.order;
+        orderStepper.querySelectorAll(".stepper-btn").forEach((b) => b.classList.toggle("selected", b === btn));
+      });
+    });
+
     document.getElementById("start-cpu").addEventListener("click", startCpuMatch);
     document.getElementById("start-pass").addEventListener("click", startPassMatch);
   }
@@ -27,10 +36,17 @@ OTH.Setup = (function () {
   }
 
   function startCpuMatch() {
-    E.startGame([
-      { name: "あなた", controller: "human", color: B.BLACK },
-      { name: "CPU", controller: "cpu", color: B.WHITE, difficulty },
-    ]);
+    const players =
+      turnOrder === "first"
+        ? [
+            { name: "あなた", controller: "human", color: B.BLACK },
+            { name: "CPU", controller: "cpu", color: B.WHITE, difficulty },
+          ]
+        : [
+            { name: "CPU", controller: "cpu", color: B.BLACK, difficulty },
+            { name: "あなた", controller: "human", color: B.WHITE },
+          ];
+    E.startGame(players);
     OTH.UI.startGame();
   }
 
